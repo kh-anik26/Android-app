@@ -49,6 +49,12 @@ android.theme = "@android:style/Theme.NoTitleBar"
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.archs = arm64-v8a, armeabi-v7a
 
+# (str) Android build tools version to use
+android.build_tools = 33.0.2
+
+# (str) Android SDK build tools directory
+android.sdk_path = ~/.buildozer/android/platform/android-sdk
+
 [buildozer]
 
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
