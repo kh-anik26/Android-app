@@ -37,8 +37,9 @@ jobs:
     - name: Install additional Android components
       run: |
         export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
-        # Install required SDK components
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" "ndk;23.2.8568313" "platform-tools"
+        # Install required SDK components, including latest cmdline-tools
+        # Explicitly installing cmdline-tools;latest ensures sdkmanager is up-to-date
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmdline-tools;latest" "build-tools;33.0.2" "platforms;android-33" "ndk;23.2.8568313" "platform-tools"
         
         # Verify AIDL installation immediately after sdkmanager
         echo "Verifying AIDL after sdkmanager installation..."
@@ -78,16 +79,19 @@ jobs:
         export ANDROID_SDK_ROOT=$ANDROID_HOME
         export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/23.2.8568313
         
-        # IMPORTANT: Explicitly add Android build tools to PATH for this step
-        # This ensures buildozer can find AIDL and other tools.
-        export PATH=$PATH:$ANDROID_HOME/build-tools/33.0.2:$ANDROID_HOME/platform-tools
+        # IMPORTANT: Prepend Android build tools to PATH for this step
+        # This ensures buildozer can find AIDL and other tools, giving them priority.
+        export PATH=$ANDROID_HOME/build-tools/33.0.2:$ANDROID_HOME/platform-tools:$PATH
         
         # Debugging: Print PATH just before buildozer runs
         echo "PATH before buildozer: $PATH"
         
         # Verify AIDL is accessible right before buildozer command
+        # Try executing AIDL directly from its expected path to confirm executability
+        echo "Attempting to execute AIDL directly for verification:"
+        "$ANDROID_HOME/build-tools/33.0.2/aidl" --version || echo "Direct AIDL execution failed or version not found!"
         which aidl || echo "AIDL still not found in PATH before buildozer!"
-        ls -la $ANDROID_HOME/build-tools/33.0.2/aidl || echo "AIDL file not found at expected location before buildozer!"
+        ls -la "$ANDROID_HOME/build-tools/33.0.2/aidl" || echo "AIDL file not found at expected location before buildozer!"
         
         # Accept any remaining licenses
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
