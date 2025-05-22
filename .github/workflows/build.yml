@@ -1,66 +1,58 @@
-name: Build Android APK
+[app]
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+# (str) Title of your application
+title = My Kivy App
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# (str) Package name
+package.name = mykivyapp
 
-    steps:
-    - uses: actions/checkout@v4
+# (str) Package domain (needed for android/ios packaging)
+package.domain = org.example
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+# (str) Source code where the main.py live
+source.dir = .
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev build-essential
-        pip3 install --upgrade pip
-        pip3 install buildozer cython
+# (list) Source files to include (let empty to include all the files)
+source.include_exts = py,png,jpg,kv,atlas
 
-    - name: Cache Buildozer global directory
-      uses: actions/cache@v4
-      with:
-        path: ~/.buildozer
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
+# (str) Application versioning (method 1)
+version = 0.1
 
-    - name: Cache Buildozer cache directory
-      uses: actions/cache@v4
-      with:
-        path: .buildozer
-        key: ${{ runner.os }}-buildozer-cache-${{ hashFiles('**/buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-cache-
+# (list) Application requirements
+# comma separated e.g. requirements = sqlite3,kivy
+requirements = python3,kivy,kivymd
 
-    - name: Build with Buildozer
-      run: |
-        buildozer android debug
-      env:
-        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+# (str) Supported orientation (one of landscape, portrait or all)
+orientation = portrait
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: android-apk
-        path: bin/*.apk
+# (bool) Indicate if the application should be fullscreen or not
+fullscreen = 0
 
-    - name: Create Release
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ github.run_number }}
-        name: Release v${{ github.run_number }}
-        files: bin/*.apk
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# (list) Permissions
+android.permissions = INTERNET
+
+# (int) Target Android API, should be as high as possible.
+android.api = 33
+
+# (int) Minimum API your APK will support.
+android.minapi = 21
+
+# (str) Android NDK version to use
+android.ndk = 23c
+
+# (bool) Use --private data storage (True) or --dir public storage (False)
+android.private_storage = True
+
+# (str) Android app theme, default is ok for Kivy-based app
+android.theme = "@android:style/Theme.NoTitleBar"
+
+# (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
+android.archs = arm64-v8a, armeabi-v7a
+
+[buildozer]
+
+# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
+log_level = 2
+
+# (int) Display warning if buildozer is run as root (0 = False, 1 = True)
+warn_on_root = 1
