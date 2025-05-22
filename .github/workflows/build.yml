@@ -38,12 +38,7 @@ jobs:
     - name: Install initial Android components and debug AIDL path
       run: |
         echo "Installing Android SDK components (initial pass)..."
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-          "cmdline-tools;latest" \
-          "build-tools;33.0.2" \
-          "platforms;android-33" \
-          "ndk;23.2.8568313" \
-          "platform-tools"
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "cmdline-tools;latest" "build-tools;33.0.2" "platforms;android-33" "ndk;23.2.8568313" "platform-tools"
 
         echo "Initial AIDL verification after sdkmanager:"
         ls -la "$ANDROID_HOME/build-tools/33.0.2/aidl" || echo "AIDL file not found at expected location after initial install!"
