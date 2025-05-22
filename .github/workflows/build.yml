@@ -36,8 +36,6 @@ jobs:
       run: echo "ANDROID_HOME is: $ANDROID_HOME"
 
     - name: Install initial Android components and debug AIDL path
-      env:
-        SKIP_JDK_VERSION_CHECK: true
       run: |
         echo "Installing Android SDK components (initial pass)..."
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
@@ -51,6 +49,8 @@ jobs:
         ls -la "$ANDROID_HOME/build-tools/33.0.2/aidl" || echo "AIDL file not found at expected location after initial install!"
         which aidl || echo "AIDL not found in PATH after initial install!"
         echo "Current PATH: $PATH"
+      env:
+        SKIP_JDK_VERSION_CHECK: true
 
     - name: Install dependencies
       run: |
@@ -76,8 +76,6 @@ jobs:
           ${{ runner.os }}-buildozer-
 
     - name: Build with Buildozer
-      env:
-        SKIP_JDK_VERSION_CHECK: true
       run: |
         echo "Starting Buildozer build process..."
         
@@ -110,6 +108,8 @@ jobs:
         
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
         buildozer android debug -v
+      env:
+        SKIP_JDK_VERSION_CHECK: true
 
     - name: List bin directory contents
       run: |
