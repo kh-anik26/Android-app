@@ -33,7 +33,11 @@ jobs:
     - name: Install additional Android components
       run: |
         export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.0" "platforms;android-33" "ndk;23.2.8568313"
+        # Install required SDK components
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" "ndk;23.2.8568313" "platform-tools"
+        # Verify AIDL installation
+        ls -la $ANDROID_HOME/build-tools/33.0.2/
+        echo "AIDL location: $ANDROID_HOME/build-tools/33.0.2/aidl"
       env:
         SKIP_JDK_VERSION_CHECK: true
 
@@ -64,11 +68,18 @@ jobs:
       run: |
         export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
         export ANDROID_SDK_ROOT=$ANDROID_HOME
-        export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
-        export PATH=$PATH:$ANDROID_HOME/build-tools/33.0.0
+        export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/23.2.8568313
+        export PATH=$PATH:$ANDROID_HOME/build-tools/33.0.2:$ANDROID_HOME/platform-tools
+        
+        # Verify AIDL is accessible
+        which aidl || echo "AIDL not in PATH, checking build-tools..."
+        ls -la $ANDROID_HOME/build-tools/33.0.2/aidl || echo "AIDL not found in build-tools"
+        
         # Accept any remaining licenses
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        buildozer android debug
+        
+        # Debug buildozer environment
+        buildozer android debug -v
       env:
         SKIP_JDK_VERSION_CHECK: true
 
