@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
@@ -28,12 +28,16 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Install additional Android components
+      run: |
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.0" "platforms;android-33" "ndk;23.2.8568313"
+
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev build-essential
+        sudo apt-get install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev build-essential libltdl-dev
         pip3 install --upgrade pip setuptools wheel
-        pip3 install buildozer cython
+        pip3 install buildozer cython==0.29.33
 
     - name: Cache Buildozer global directory
       uses: actions/cache@v4
@@ -54,6 +58,10 @@ jobs:
     - name: Build with Buildozer
       run: |
         export ANDROID_SDK_ROOT=$ANDROID_HOME
+        export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
+        export PATH=$PATH:$ANDROID_HOME/build-tools/33.0.0
+        # Accept any remaining licenses
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
         buildozer android debug
 
     - name: Upload APK
