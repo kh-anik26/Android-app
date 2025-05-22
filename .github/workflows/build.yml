@@ -78,17 +78,17 @@ jobs:
     - name: Build with Buildozer
       run: |
         echo "Starting Buildozer build process..."
-        
+
         echo "Re-installing build-tools;33.0.2 to ensure AIDL is available..."
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2"
-        
+
         export ANDROID_SDK_ROOT=$ANDROID_HOME
         export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/23.2.8568313
         export PATH=$ANDROID_HOME/build-tools/33.0.2:$ANDROID_HOME/platform-tools:$PATH
 
         echo "Detailed AIDL verification just before buildozer command:"
         AIDL_PATH="$ANDROID_HOME/build-tools/33.0.2/aidl"
-        
+
         if [ -f "$AIDL_PATH" ]; then
             echo "AIDL found at: $AIDL_PATH"
             if [ -x "$AIDL_PATH" ]; then
@@ -102,10 +102,10 @@ jobs:
         else
             echo "AIDL file DOES NOT EXIST at $AIDL_PATH. This is a critical error."
         fi
-        
+
         echo "PATH before buildozer execution: $PATH"
         which aidl || echo "AIDL still not found in PATH! (which command check)"
-        
+
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
         buildozer android debug -v
       env:
