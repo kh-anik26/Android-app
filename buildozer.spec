@@ -1,109 +1,64 @@
-name: Build Android APK
+[app]
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+# (str) Title of your application
+title = My Kivy App
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
+# (str) Package name
+package.name = mykivyapp
 
-    steps:
-    - uses: actions/checkout@v4
+# (str) Package domain (needed for android/ios packaging)
+package.domain = org.example
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
+# (str) Source code where the main.py live
+source.dir = .
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+# (list) Source files to include (let empty to include all the files)
+source.include_exts = py,png,jpg,kv,atlas
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      env:
-        JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+# (str) Application versioning (method 1)
+version = 0.1
 
-    - name: Install additional Android components
-      run: |
-        export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
-        # Install required SDK components
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" "ndk;23.2.8568313" "platform-tools"
-        # Verify AIDL installation
-        ls -la $ANDROID_HOME/build-tools/33.0.2/
-        echo "AIDL location: $ANDROID_HOME/build-tools/33.0.2/aidl"
-      env:
-        SKIP_JDK_VERSION_CHECK: true
+# (list) Application requirements
+# comma separated e.g. requirements = sqlite3,kivy
+requirements = python3,kivy,kivymd
 
-    # NEW STEP: Ensure Android build tools are in PATH for subsequent commands
-    - name: Add Android Build Tools to PATH
-      run: |
-        echo "$ANDROID_HOME/build-tools/33.0.2" >> $GITHUB_PATH
-        echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-      # This step relies on $ANDROID_HOME being set by previous steps
-      # and the build-tools being installed.
+# (str) Supported orientation (one of landscape, portrait or all)
+orientation = portrait
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev build-essential libltdl-dev
-        pip3 install --upgrade pip setuptools wheel
-        pip3 install buildozer cython==0.29.33
+# (bool) Indicate if the application should be fullscreen or not
+fullscreen = 0
 
-    - name: Cache Buildozer global directory
-      uses: actions/cache@v4
-      with:
-        path: ~/.buildozer
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
+# (list) Permissions
+android.permissions = INTERNET
 
-    - name: Cache Buildozer cache directory
-      uses: actions/cache@v4
-      with:
-        path: .buildozer
-        key: ${{ runner.os }}-buildozer-cache-${{ hashFiles('**/buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
+# (int) Target Android API, should be as high as possible.
+android.api = 33
 
-    - name: Build with Buildozer
-      run: |
-        export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
-        export ANDROID_SDK_ROOT=$ANDROID_HOME
-        export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/23.2.8568313
-        # The PATH should now be correctly set by the "Add Android Build Tools to PATH" step
-        
-        # Verify AIDL is accessible (this check should now pass)
-        which aidl || echo "AIDL not in PATH, checking build-tools..."
-        ls -la $ANDROID_HOME/build-tools/33.0.2/aidl || echo "AIDL not found in build-tools"
-        
-        # Accept any remaining licenses
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        
-        # Debug buildozer environment
-        buildozer android debug -v
-      env:
-        SKIP_JDK_VERSION_CHECK: true
+# (int) Minimum API your APK will support.
+android.minapi = 21
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: android-apk
-        path: bin/*.apk
+# (str) Android NDK version to use
+android.ndk = 23c
 
-    - name: Create Release
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ github.run_number }}
-        name: Release v${{ github.run_number }}
-        files: bin/*.apk
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# (bool) Use --private data storage (True) or --dir public storage (False)
+android.private_storage = True
+
+# (str) Android app theme, default is ok for Kivy-based app
+android.theme = "@android:style/Theme.NoTitleBar"
+
+# (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
+android.archs = arm64-v8a, armeabi-v7a
+
+# (str) Android build tools version to use
+android.build_tools = 33.0.2
+
+# (str) Android SDK build tools directory
+android.sdk_path = ~/.buildozer/android/platform/android-sdk
+
+[buildozer]
+
+# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
+log_level = 2
+
+# (int) Display warning if buildozer is run as root (0 = False, 1 = True)
+warn_on_root = 1
