@@ -30,24 +30,23 @@ jobs:
       env:
         JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
 
+    # Debugging step: Print ANDROID_HOME to confirm it's set
+    - name: Debug Android Home
+      run: echo "ANDROID_HOME is: $ANDROID_HOME"
+
     - name: Install additional Android components
       run: |
         export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
         # Install required SDK components
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33" "ndk;23.2.8568313" "platform-tools"
-        # Verify AIDL installation
-        ls -la $ANDROID_HOME/build-tools/33.0.2/
-        echo "AIDL location: $ANDROID_HOME/build-tools/33.0.2/aidl"
+        
+        # Verify AIDL installation immediately after sdkmanager
+        echo "Verifying AIDL after sdkmanager installation..."
+        ls -la $ANDROID_HOME/build-tools/33.0.2/aidl || echo "AIDL not found at $ANDROID_HOME/build-tools/33.0.2/aidl"
+        which aidl || echo "AIDL not found in current PATH after sdkmanager"
+        echo "Current PATH: $PATH"
       env:
         SKIP_JDK_VERSION_CHECK: true
-
-    # NEW STEP: Ensure Android build tools are in PATH for subsequent commands
-    - name: Add Android Build Tools to PATH
-      run: |
-        echo "$ANDROID_HOME/build-tools/33.0.2" >> $GITHUB_PATH
-        echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-      # This step relies on $ANDROID_HOME being set by previous steps
-      # and the build-tools being installed.
 
     - name: Install dependencies
       run: |
@@ -74,19 +73,26 @@ jobs:
 
     - name: Build with Buildozer
       run: |
+        # Explicitly set environment variables for this step
         export JAVA_HOME=${{ env.JAVA_HOME_17_X64 }}
         export ANDROID_SDK_ROOT=$ANDROID_HOME
         export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/23.2.8568313
-        # The PATH should now be correctly set by the "Add Android Build Tools to PATH" step
         
-        # Verify AIDL is accessible (this check should now pass)
-        which aidl || echo "AIDL not in PATH, checking build-tools..."
-        ls -la $ANDROID_HOME/build-tools/33.0.2/aidl || echo "AIDL not found in build-tools"
+        # IMPORTANT: Explicitly add Android build tools to PATH for this step
+        # This ensures buildozer can find AIDL and other tools.
+        export PATH=$PATH:$ANDROID_HOME/build-tools/33.0.2:$ANDROID_HOME/platform-tools
+        
+        # Debugging: Print PATH just before buildozer runs
+        echo "PATH before buildozer: $PATH"
+        
+        # Verify AIDL is accessible right before buildozer command
+        which aidl || echo "AIDL still not found in PATH before buildozer!"
+        ls -la $ANDROID_HOME/build-tools/33.0.2/aidl || echo "AIDL file not found at expected location before buildozer!"
         
         # Accept any remaining licenses
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
         
-        # Debug buildozer environment
+        # Run buildozer
         buildozer android debug -v
       env:
         SKIP_JDK_VERSION_CHECK: true
