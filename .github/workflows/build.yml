@@ -38,7 +38,6 @@ jobs:
     - name: Install initial Android components and debug AIDL path
       env:
         SKIP_JDK_VERSION_CHECK: true
-        JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
       run: |
         echo "Installing Android SDK components (initial pass)..."
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
@@ -79,7 +78,6 @@ jobs:
     - name: Build with Buildozer
       env:
         SKIP_JDK_VERSION_CHECK: true
-        JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
       run: |
         echo "Starting Buildozer build process..."
         
